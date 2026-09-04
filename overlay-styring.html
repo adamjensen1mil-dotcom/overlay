@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Overlay-styring</title>
+<style>
+  :root{
+    --bg:#0f1017;
+    --kort:#171a24;
+    --kant:#252938;
+    --tekst:#eef1f8;
+    --daemp:#98a0b8;
+    --guld:#F2C11B;
+    --groen:#1D9E3D;
+    --blaa:#3D6FE0;
+    --roed:#e03131;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;background:var(--bg);color:var(--tekst);
+    font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:16px 14px 60px;max-width:640px;margin:0 auto;
+  }
+  h1{font-size:20px;margin:6px 0 2px;letter-spacing:.02em}
+  .under{color:var(--daemp);font-size:13px;margin:0 0 18px}
+
+  .kort{background:var(--kort);border:1px solid var(--kant);border-radius:14px;
+    padding:14px;margin-bottom:14px}
+  .kort h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--daemp);margin:0 0 12px;font-weight:700}
+
+  label{display:block;font-size:12px;color:var(--daemp);margin:10px 0 5px}
+  input{width:100%;padding:12px 12px;border-radius:10px;border:1px solid var(--kant);
+    background:#101219;color:var(--tekst);font-size:15px;font-family:inherit}
+  input:focus{outline:none;border-color:var(--blaa)}
+
+  .rk{display:flex;gap:8px;flex-wrap:wrap}
+  button{
+    flex:1 1 auto;min-width:120px;min-height:52px;padding:12px 14px;
+    border:none;border-radius:12px;background:#222635;color:var(--tekst);
+    font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;
+  }
+  button:active{transform:translateY(1px)}
+  button.guld{background:var(--guld);color:#14151f}
+  button.groen{background:var(--groen)}
+  button.blaa{background:var(--blaa)}
+  button.roed{background:var(--roed)}
+  button:disabled{opacity:.45}
+
+  .status{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:10px}
+  .prik{width:10px;height:10px;border-radius:50%;background:#666;flex:0 0 auto}
+  .prik.on{background:var(--groen)}
+  .prik.fejl{background:var(--roed)}
+
+  .log{margin-top:10px;font-size:12px;color:var(--daemp);min-height:18px}
+  .hjaelp{font-size:12px;color:var(--daemp);line-height:1.5;margin-top:8px}
+  .hjaelp a{color:var(--blaa)}
+</style>
+</head>
+<body>
+
+<h1>Overlay-styring</h1>
+<p class="under">Knapperne sender de samme kommandoer, som du ellers skriver i chatten.</p>
+
+<div class="kort">
+  <h2>Forbindelse</h2>
+  <label for="kanal">Kanal</label>
+  <input id="kanal" placeholder="hauge" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <label for="bruger">Dit Twitch-brugernavn (skal være mod i kanalen)</label>
+  <input id="bruger" placeholder="dit_navn" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <label for="token">Token</label>
+  <input id="token" type="password" placeholder="oauth:xxxxxxxxxxxxxxxx">
+  <div class="rk" style="margin-top:12px">
+    <button class="groen" id="forbind">Forbind</button>
+    <button id="glem">Glem</button>
+  </div>
+  <div class="status"><span class="prik" id="prik"></span><span id="statustekst">Ikke forbundet</span></div>
+  <div class="log" id="log"></div>
+  <div class="hjaelp">
+    Tokenet henter du på <a href="https://twitchapps.com/tmi/" target="_blank" rel="noopener">twitchapps.com/tmi</a>.
+    Det gemmes kun i denne browser og sendes ingen steder hen ud over til Twitch.
+  </div>
+</div>
+
+<div class="kort">
+  <h2>Hjulet</h2>
+  <div class="rk">
+    <button class="guld" data-cmd="!spin">Spin</button>
+    <button data-cmd="!hjul">Vis / skjul</button>
+  </div>
+</div>
+
+<div class="kort">
+  <h2>Spilliste</h2>
+  <div class="rk">
+    <button class="blaa" data-cmd="!spil 1">Spil 1</button>
+    <button class="blaa" data-cmd="!spil 2">Spil 2</button>
+    <button class="blaa" data-cmd="!spil 3">Spil 3</button>
+  </div>
+  <div class="rk" style="margin-top:8px">
+    <button class="groen" data-cmd="!klar 1">Klar 1</button>
+    <button class="groen" data-cmd="!klar 2">Klar 2</button>
+    <button class="groen" data-cmd="!klar 3">Klar 3</button>
+  </div>
+  <div class="rk" style="margin-top:8px">
+    <button class="guld" data-cmd="!forsøg">Forsøg +1</button>
+    <button data-cmd="!nulforsøg">Nulstil forsøg</button>
+  </div>
+  <div class="rk" style="margin-top:8px">
+    <button data-cmd="!games">Vis / skjul</button>
+    <button class="roed" data-cmd="!reset">Reset liste</button>
+  </div>
+</div>
+
+<div class="kort">
+  <h2>Giveaway</h2>
+  <div class="rk">
+    <button class="groen" data-cmd="!åben">Åbn</button>
+    <button data-cmd="!luk">Luk</button>
+    <button class="guld" data-cmd="!træk">Træk vinder</button>
+    <button class="roed" data-cmd="!ryd">Ryd</button>
+  </div>
+</div>
+
+<div class="kort">
+  <h2>Andet</h2>
+  <div class="rk">
+    <button data-cmd="!gætord">Ordgætteri vis / skjul</button>
+    <button data-cmd="!afstemning">Afstemning vis / skjul</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var NØGLE = "overlay_styring";
+  var kanalEl = document.getElementById("kanal");
+  var brugerEl = document.getElementById("bruger");
+  var tokenEl = document.getElementById("token");
+  var prik = document.getElementById("prik");
+  var statustekst = document.getElementById("statustekst");
+  var logEl = document.getElementById("log");
+
+  var ws = null;
+  var klar = false;
+  var sidsteSendt = {};
+
+  // gemte oplysninger
+  try {
+    var g = JSON.parse(localStorage.getItem(NØGLE) || "{}");
+    kanalEl.value = g.kanal || "";
+    brugerEl.value = g.bruger || "";
+    tokenEl.value = g.token || "";
+  } catch (e) {
+  }
+
+  // kanalen kan staa i linket: ...overlay-styring.html?kanal=hauge
+  try {
+    var p = new URLSearchParams(location.search);
+    var fraLink = p.get("kanal");
+    if (fraLink) {
+      kanalEl.value = String(fraLink).trim().toLowerCase();
+    }
+  } catch (e) {
+  }
+
+  function gem() {
+    try {
+      localStorage.setItem(NØGLE, JSON.stringify({
+        kanal: kanalEl.value.trim().toLowerCase(),
+        bruger: brugerEl.value.trim().toLowerCase(),
+        token: tokenEl.value.trim()
+      }));
+    } catch (e) {
+    }
+  }
+
+  function status(tekst, tilstand) {
+    statustekst.textContent = tekst;
+    prik.className = "prik" + (tilstand ? " " + tilstand : "");
+  }
+
+  function log(tekst) {
+    logEl.textContent = tekst;
+  }
+
+  function forbind() {
+    var kanal = kanalEl.value.trim().toLowerCase();
+    var bruger = brugerEl.value.trim().toLowerCase();
+    var token = tokenEl.value.trim();
+
+    if (!kanal || !bruger || !token) {
+      status("Udfyld kanal, brugernavn og token", "fejl");
+      return;
+    }
+    if (token.indexOf("oauth:") !== 0) {
+      token = "oauth:" + token;
+    }
+    gem();
+
+    if (ws) {
+      try {
+        ws.close();
+      } catch (e) {
+      }
+    }
+
+    klar = false;
+    status("Forbinder ...");
+
+    ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
+
+    ws.onopen = function () {
+      ws.send("PASS " + token);
+      ws.send("NICK " + bruger);
+      ws.send("JOIN #" + kanal);
+    };
+
+    ws.onmessage = function (ev) {
+      var linjer = String(ev.data).split("\r\n");
+      for (var i = 0; i < linjer.length; i++) {
+        var l = linjer[i];
+        if (!l) {
+          continue;
+        }
+        if (l.indexOf("PING") === 0) {
+          ws.send("PONG :tmi.twitch.tv");
+        }
+        if (l.indexOf(" 001 ") > -1) {
+          klar = true;
+          status("Forbundet til #" + kanal, "on");
+        }
+        if (l.indexOf("Login authentication failed") > -1) {
+          klar = false;
+          status("Token afvist - hent et nyt", "fejl");
+        }
+      }
+    };
+
+    ws.onclose = function () {
+      klar = false;
+      status("Afbrudt", "fejl");
+    };
+
+    ws.onerror = function () {
+      klar = false;
+      status("Kunne ikke forbinde", "fejl");
+    };
+  }
+
+  function send(kommando) {
+    if (!ws || !klar) {
+      log("Forbind først");
+      return;
+    }
+    var kanal = kanalEl.value.trim().toLowerCase();
+
+    // Twitch afviser to ens beskeder lige efter hinanden, saa der
+    // saettes et usynligt tegn paa hver anden.
+    var nu = Date.now();
+    var tekst = kommando;
+    if (sidsteSendt[kommando] && nu - sidsteSendt[kommando] < 32000) {
+      tekst = kommando + " \u200b";
+    }
+    sidsteSendt[kommando] = nu;
+
+    ws.send("PRIVMSG #" + kanal + " :" + tekst);
+    log("Sendt: " + kommando);
+  }
+
+  document.getElementById("forbind").addEventListener("click", forbind);
+
+  document.getElementById("glem").addEventListener("click", function () {
+    try {
+      localStorage.removeItem(NØGLE);
+    } catch (e) {
+    }
+    kanalEl.value = "";
+    brugerEl.value = "";
+    tokenEl.value = "";
+    if (ws) {
+      try {
+        ws.close();
+      } catch (e) {
+      }
+    }
+    status("Ikke forbundet");
+    log("Oplysninger slettet fra denne enhed");
+  });
+
+  var knapper = document.querySelectorAll("button[data-cmd]");
+  for (var i = 0; i < knapper.length; i++) {
+    (function (k) {
+      k.addEventListener("click", function () {
+        send(k.getAttribute("data-cmd"));
+        k.disabled = true;
+        setTimeout(function () {
+          k.disabled = false;
+        }, 600);
+      });
+    })(knapper[i]);
+  }
+
+  // forbind af sig selv, hvis alt er gemt i forvejen
+  if (kanalEl.value && brugerEl.value && tokenEl.value) {
+    forbind();
+  }
+})();
+</script>
+</body>
+</html>
